@@ -2,9 +2,12 @@ package com.example.maksim_zakharenka.broowerandroidapplication;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
@@ -13,17 +16,19 @@ import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ProgressBar;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String URL_HOST = "https://avroramarket.by/";
+    public static final String URL_HOST = "https://avroramarket.by";
+    public static final String URL_HOST_PROFILE = "https://avrora.market";
+    public static final String URL_HOST_COUNTRY = "https://avroramarket24.ru";
     public static final int FADE_OUT_MILLIS = 750;
 
     private View mSplashBackgroundView;
     private View mSplashView;
     private WebView mWebView;
     private boolean mIsError;
+    private boolean mIsErrorDialogShown;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -46,13 +51,18 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebViewClient(new WebViewClient() {
 
             public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
-                if (url.startsWith(URL_HOST)) {
+                Log.d("thecriser", url);
+
+                if (url.startsWith(URL_HOST) || url.startsWith(URL_HOST_PROFILE) || url.startsWith(URL_HOST_COUNTRY)) {
                     view.loadUrl(url);
 
-                    return true;
-                } else {
-                    super.shouldOverrideUrlLoading(view, url);
                     return false;
+                } else {
+                    final Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    startActivity(intent);
+
+                    return true;
                 }
             }
 
@@ -62,33 +72,41 @@ public class MainActivity extends AppCompatActivity {
 
                 mIsError = true;
 
-                final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("Ошибка сети")
-                        .setMessage("Проверьте подключение к интернету и повторите снова.")
-                        .setCancelable(false)
-                        .setPositiveButton("Повторить", new DialogInterface.OnClickListener() {
+                if (!mIsErrorDialogShown) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Ошибка сети")
+                            .setMessage("Проверьте подключение к интернету и повторите снова.")
+                            .setCancelable(false)
+                            .setPositiveButton("Повторить", new DialogInterface.OnClickListener() {
 
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                                initWebView();
-                            }
-                        })
-                        .setNegativeButton("Отмена",
-                                new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(final DialogInterface dialog, final int which) {
+                                    initWebView();
+                                }
+                            })
+                            .setNegativeButton("Отмена",
+                                    new DialogInterface.OnClickListener() {
 
-                                    public void onClick(final DialogInterface dialog, final int id) {
-                                        finish();
-                                    }
-                                });
+                                        public void onClick(final DialogInterface dialog, final int id) {
+                                            mIsErrorDialogShown = false;
 
-                final AlertDialog alert = builder.create();
-                alert.show();
+                                            finish();
+                                        }
+                                    });
+
+                    final AlertDialog alert = builder.create();
+                    alert.show();
+
+                    if (mSplashView.getVisibility() != View.VISIBLE) {
+                        mSplashView.setVisibility(View.VISIBLE);
+                    }
+
+                    mIsErrorDialogShown = true;
+                }
             }
 
             public void onPageFinished(final WebView view, final String url) {
-                if (mIsError) {
-
-                } else {
+                if (!mIsError) {
                     fadeOutLogos();
                 }
 
