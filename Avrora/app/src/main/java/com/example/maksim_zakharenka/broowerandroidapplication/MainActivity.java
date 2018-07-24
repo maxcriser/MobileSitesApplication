@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
@@ -17,17 +16,25 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
-    public static final String URL_HOST = "https://avroramarket.by";
-    public static final String URL_HOST_PROFILE = "https://avrora.market";
-    public static final String URL_HOST_COUNTRY = "https://avroramarket24.ru";
     public static final int FADE_OUT_MILLIS = 750;
 
+    static final List<String> AVAILABLE_HOSTS = new ArrayList<String>() {{
+        add(Constants.URL.URL_HOST);
+        add(Constants.URL.URL_HOST_COUNTRY);
+//        add(Constants.URL.URL_HOST_PROFILE);
+    }};
+
+    private View mProgressBar;
+    private View mProgressBarClickableFrame;
     private View mSplashBackgroundView;
+    private View mWhiteSplashBackgroundView;
     private View mSplashView;
     private WebView mWebView;
-    private boolean mIsError;
     private boolean mIsErrorDialogShown;
 
     @Override
@@ -39,28 +46,41 @@ public class MainActivity extends AppCompatActivity {
         initWebView();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (mWebView != null && mWebView.canGoBack()) {
+            mWebView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void initViews() {
+        mProgressBar = findViewById(R.id.progressBar);
+        mProgressBarClickableFrame = findViewById(R.id.progressBarClickableFrame);
         mSplashView = findViewById(R.id.splash_view);
         mSplashBackgroundView = findViewById(R.id.splash_background_view);
+        mWhiteSplashBackgroundView = findViewById(R.id.white_splash_background_view);
         mWebView = findViewById(R.id.web_view);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private void initWebView() {
         mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setAllowFileAccess(true);
+        mWebView.getSettings().setUseWideViewPort(true);
+        mWebView.getSettings().setLoadWithOverviewMode(true);
         mWebView.setWebViewClient(new WebViewClient() {
 
-            public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
-                Log.d("thecriser", url);
+            public boolean shouldOverrideUrlLoading(final WebView view, final String pUrl) {
+                if (isHostAvailable(pUrl)) {
+                    showProgressBar();
 
-                if (url.startsWith(URL_HOST) || url.startsWith(URL_HOST_PROFILE) || url.startsWith(URL_HOST_COUNTRY)) {
-                    view.loadUrl(url);
+                    view.loadUrl(pUrl);
 
                     return false;
                 } else {
-                    final Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(url));
-                    startActivity(intent);
+                    sendUrlIntent(pUrl);
 
                     return true;
                 }
@@ -70,51 +90,92 @@ public class MainActivity extends AppCompatActivity {
             public void onReceivedError(final WebView view, final WebResourceRequest request, final WebResourceError error) {
                 super.onReceivedError(view, request, error);
 
-                mIsError = true;
+                showSplashView();
 
                 if (!mIsErrorDialogShown) {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setTitle("Ошибка сети")
-                            .setMessage("Проверьте подключение к интернету и повторите снова.")
-                            .setCancelable(false)
-                            .setPositiveButton("Повторить", new DialogInterface.OnClickListener() {
-
-                                @Override
-                                public void onClick(final DialogInterface dialog, final int which) {
-                                    initWebView();
-                                }
-                            })
-                            .setNegativeButton("Отмена",
-                                    new DialogInterface.OnClickListener() {
-
-                                        public void onClick(final DialogInterface dialog, final int id) {
-                                            mIsErrorDialogShown = false;
-
-                                            finish();
-                                        }
-                                    });
-
-                    final AlertDialog alert = builder.create();
-                    alert.show();
-
-                    if (mSplashView.getVisibility() != View.VISIBLE) {
-                        mSplashView.setVisibility(View.VISIBLE);
-                    }
+                    showAlertDialog();
 
                     mIsErrorDialogShown = true;
                 }
             }
 
-            public void onPageFinished(final WebView view, final String url) {
-                if (!mIsError) {
+            @Override
+            public void onPageCommitVisible(final WebView view, final String url) {
+                super.onPageCommitVisible(view, url);
+
+                hideProgressBar();
+
+                if (mSplashBackgroundView.getVisibility() == View.VISIBLE ||
+                        mWhiteSplashBackgroundView.getVisibility() == View.VISIBLE ||
+                        mSplashView.getVisibility() == View.VISIBLE) {
                     fadeOutLogos();
                 }
-
-                mIsError = false;
             }
         });
 
-        mWebView.loadUrl(URL_HOST);
+        mWebView.loadUrl(Constants.URL.URL_HOST);
+    }
+
+    private void showAlertDialog() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.error_title)
+                .setMessage(R.string.error_body)
+                .setCancelable(false)
+                .setPositiveButton(R.string.error_try_again, new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int which) {
+                        mIsErrorDialogShown = false;
+
+                        showProgressBar();
+
+                        mWebView.reload();
+                    }
+                })
+                .setNegativeButton(R.string.error_cancel,
+                        new DialogInterface.OnClickListener() {
+
+                            public void onClick(final DialogInterface dialog, final int id) {
+                                mIsErrorDialogShown = false;
+
+                                finish();
+                            }
+                        });
+
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void sendUrlIntent(final String pUrl) {
+        final Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(pUrl));
+        startActivity(intent);
+    }
+
+    private void showSplashView() {
+        mSplashBackgroundView.setVisibility(View.VISIBLE);
+        mWhiteSplashBackgroundView.setVisibility(View.VISIBLE);
+        mSplashView.setVisibility(View.VISIBLE);
+    }
+
+    private void showProgressBar() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mProgressBarClickableFrame.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        mProgressBar.setVisibility(View.GONE);
+        mProgressBarClickableFrame.setVisibility(View.GONE);
+    }
+
+    private boolean isHostAvailable(final String pUrl) {
+        for (final String url : AVAILABLE_HOSTS) {
+            if (pUrl.startsWith(url)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void fadeOutLogos() {
@@ -130,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
         fadeOut.setAnimationListener(getBackgroundAnimationListener());
 
         mSplashBackgroundView.startAnimation(fadeOut);
+        mWhiteSplashBackgroundView.startAnimation(fadeOut);
     }
 
     private Animation getFadeOutAnimation() {
@@ -144,7 +206,9 @@ public class MainActivity extends AppCompatActivity {
         return new SimpleAnimationListener() {
 
             public void onAnimationEnd(final Animation animation) {
+
                 mSplashBackgroundView.setVisibility(View.GONE);
+                mWhiteSplashBackgroundView.setVisibility(View.GONE);
             }
         };
     }
@@ -153,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
         return new SimpleAnimationListener() {
 
             public void onAnimationEnd(final Animation animation) {
+
                 mSplashView.setVisibility(View.GONE);
 
                 fadeOutBackground();
