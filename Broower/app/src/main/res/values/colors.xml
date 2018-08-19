@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">@color/brand_color</color>
+    <color name="colorPrimaryDark">@color/white_gray</color>
+    <color name="colorAccent">@color/white</color>
+
+    <color name="white_gray">#f0f0f0</color>
+    <color name="white">#ffffff</color>
+    <color name="brand_color">#4166fc</color>
+    <color name="gray_shadow">#99000000</color>
+    <color name="splash_background_color">#fff</color>
+</resources>

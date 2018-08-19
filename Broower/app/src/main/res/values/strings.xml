@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Broower</string>
+    <string name="error_title">Ошибка сети</string>
+    <string name="error_body">Проверьте подключение к интернету и повторите снова.</string>
+    <string name="error_try_again">Повторить</string>
+    <string name="error_cancel">Отмена</string>
+</resources>
