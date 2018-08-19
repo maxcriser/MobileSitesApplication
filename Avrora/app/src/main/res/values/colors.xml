@@ -8,4 +8,5 @@
     <color name="white">#ffffff</color>
     <color name="brand_color">#e31e24</color>
     <color name="gray_shadow">#99000000</color>
+    <color name="splash_background_color">#fff</color>
 </resources>

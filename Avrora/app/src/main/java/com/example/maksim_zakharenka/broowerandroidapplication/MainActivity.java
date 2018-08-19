@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -38,55 +37,49 @@ import saschpe.android.customtabs.WebViewFallback;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int FADE_OUT_MILLIS = 750;
-
     static final List<String> AVAILABLE_HOSTS = new ArrayList<String>() {{
         add(Constants.URL.URL_HOST);
         add(Constants.URL.URL_HOST_COUNTRY);
-//        add(Constants.URL.URL_HOST_PROFILE);
+    }};
+
+    static final List<String> CHROME_TAB_HOSTS = new ArrayList<String>() {{
+        add(Constants.URL.URL_HOST_PROFILE);
     }};
 
     private View mProgressBar;
     private View mProgressBarClickableFrame;
     private View mSplashBackgroundView;
     private View mWhiteSplashBackgroundView;
-    private View mSplashView;
+    private View mLogoSplashView;
     private WebView mWebView;
     private boolean mIsErrorDialogShown;
-
-    private CustomTabsIntent customTabsIntent;
+    private CustomTabsIntent mCustomTabsIntent;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        customTabsIntent = new CustomTabsIntent.Builder()
-                .addDefaultShareMenuItem()
-                .setToolbarColor(this.getResources().getColor(R.color.colorPrimary))
-                .setShowTitle(true)
-                .enableUrlBarHiding()
-                .build();
-
-        CustomTabsHelper.addKeepAliveExtra(MainActivity.this, customTabsIntent.intent);
-
+        initCustomTabsIntent();
         initViews();
         initWebView();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (mWebView != null && mWebView.canGoBack()) {
-            mWebView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+    private void initCustomTabsIntent() {
+        mCustomTabsIntent = new CustomTabsIntent.Builder()
+                .addDefaultShareMenuItem()
+                .setToolbarColor(this.getResources().getColor(R.color.brand_color))
+                .setShowTitle(true)
+                .enableUrlBarHiding()
+                .build();
+
+        CustomTabsHelper.addKeepAliveExtra(this, mCustomTabsIntent.intent);
     }
 
     private void initViews() {
         mProgressBar = findViewById(R.id.progressBar);
         mProgressBarClickableFrame = findViewById(R.id.progressBarClickableFrame);
-        mSplashView = findViewById(R.id.splash_view);
+        mLogoSplashView = findViewById(R.id.logo_splash_view);
         mSplashBackgroundView = findViewById(R.id.splash_background_view);
         mWhiteSplashBackgroundView = findViewById(R.id.white_splash_background_view);
         mWebView = findViewById(R.id.web_view);
@@ -101,27 +94,27 @@ public class MainActivity extends AppCompatActivity {
         mWebView.setWebViewClient(new WebViewClient() {
 
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            public boolean shouldOverrideUrlLoading(final WebView view, final WebResourceRequest request) {
                 Log.d("thecriser", "shouldOverrideUrlLoading");
                 return super.shouldOverrideUrlLoading(view, request);
             }
 
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            public void onPageStarted(final WebView view, final String url, final Bitmap favicon) {
                 Log.d("thecriser", "onPageStarted");
 
                 super.onPageStarted(view, url, favicon);
             }
 
             @Override
-            public void onPageFinished(WebView view, String url) {
+            public void onPageFinished(final WebView view, final String url) {
                 Log.d("thecriser", "onPageFinished");
 
                 super.onPageFinished(view, url);
             }
 
             @Override
-            public void onLoadResource(WebView view, String url) {
+            public void onLoadResource(final WebView view, final String url) {
                 Log.d("thecriser", "onLoadResource");
 
                 super.onLoadResource(view, url);
@@ -129,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Nullable
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            public WebResourceResponse shouldInterceptRequest(final WebView view, final String url) {
                 Log.d("thecriser", "shouldInterceptRequest");
 
                 return super.shouldInterceptRequest(view, url);
@@ -137,98 +130,98 @@ public class MainActivity extends AppCompatActivity {
 
             @Nullable
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            public WebResourceResponse shouldInterceptRequest(final WebView view, final WebResourceRequest request) {
                 Log.d("thecriser", "shouldInterceptRequest");
 
                 return super.shouldInterceptRequest(view, request);
             }
 
             @Override
-            public void onTooManyRedirects(WebView view, Message cancelMsg, Message continueMsg) {
+            public void onTooManyRedirects(final WebView view, final Message cancelMsg, final Message continueMsg) {
                 Log.d("thecriser", "onTooManyRedirects");
 
                 super.onTooManyRedirects(view, cancelMsg, continueMsg);
             }
 
             @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            public void onReceivedError(final WebView view, final int errorCode, final String description, final String failingUrl) {
                 Log.d("thecriser", "onReceivedError");
 
                 super.onReceivedError(view, errorCode, description, failingUrl);
             }
 
             @Override
-            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            public void onReceivedHttpError(final WebView view, final WebResourceRequest request, final WebResourceResponse errorResponse) {
                 Log.d("thecriser", "onReceivedHttpError");
 
                 super.onReceivedHttpError(view, request, errorResponse);
             }
 
             @Override
-            public void onFormResubmission(WebView view, Message dontResend, Message resend) {
+            public void onFormResubmission(final WebView view, final Message dontResend, final Message resend) {
                 Log.d("thecriser", "onFormResubmission");
 
                 super.onFormResubmission(view, dontResend, resend);
             }
 
             @Override
-            public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+            public void doUpdateVisitedHistory(final WebView view, final String url, final boolean isReload) {
                 Log.d("thecriser", "doUpdateVisitedHistory");
 
                 super.doUpdateVisitedHistory(view, url, isReload);
             }
 
             @Override
-            public void onReceivedClientCertRequest(WebView view, ClientCertRequest request) {
+            public void onReceivedClientCertRequest(final WebView view, final ClientCertRequest request) {
                 Log.d("thecriser", "onReceivedClientCertRequest");
 
                 super.onReceivedClientCertRequest(view, request);
             }
 
             @Override
-            public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+            public void onReceivedHttpAuthRequest(final WebView view, final HttpAuthHandler handler, final String host, final String realm) {
                 Log.d("thecriser", "onReceivedHttpAuthRequest");
 
                 super.onReceivedHttpAuthRequest(view, handler, host, realm);
             }
 
             @Override
-            public boolean shouldOverrideKeyEvent(WebView view, KeyEvent event) {
+            public boolean shouldOverrideKeyEvent(final WebView view, final KeyEvent event) {
                 Log.d("thecriser", "shouldOverrideKeyEvent");
 
                 return super.shouldOverrideKeyEvent(view, event);
             }
 
             @Override
-            public void onUnhandledKeyEvent(WebView view, KeyEvent event) {
+            public void onUnhandledKeyEvent(final WebView view, final KeyEvent event) {
                 Log.d("thecriser", "onUnhandledKeyEvent");
 
                 super.onUnhandledKeyEvent(view, event);
             }
 
             @Override
-            public void onScaleChanged(WebView view, float oldScale, float newScale) {
+            public void onScaleChanged(final WebView view, final float oldScale, final float newScale) {
                 Log.d("thecriser", "onScaleChanged");
 
                 super.onScaleChanged(view, oldScale, newScale);
             }
 
             @Override
-            public void onReceivedLoginRequest(WebView view, String realm, @Nullable String account, String args) {
+            public void onReceivedLoginRequest(final WebView view, final String realm, @Nullable final String account, final String args) {
                 Log.d("thecriser", "onReceivedLoginRequest");
 
                 super.onReceivedLoginRequest(view, realm, account, args);
             }
 
             @Override
-            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+            public boolean onRenderProcessGone(final WebView view, final RenderProcessGoneDetail detail) {
                 Log.d("thecriser", "onRenderProcessGone");
 
                 return super.onRenderProcessGone(view, detail);
             }
 
             @Override
-            public void onSafeBrowsingHit(WebView view, WebResourceRequest request, int threatType, SafeBrowsingResponse callback) {
+            public void onSafeBrowsingHit(final WebView view, final WebResourceRequest request, final int threatType, final SafeBrowsingResponse callback) {
                 Log.d("thecriser", "onSafeBrowsingHit");
 
                 super.onSafeBrowsingHit(view, request, threatType, callback);
@@ -237,14 +230,14 @@ public class MainActivity extends AppCompatActivity {
             public boolean shouldOverrideUrlLoading(final WebView view, final String pUrl) {
                 Log.d("thecriser", "shouldOverrideUrlLoading");
 
-                if (isHostAvailable(pUrl)) {
+                if (isHostStartsWithUrl(AVAILABLE_HOSTS, pUrl)) {
                     showProgressBar();
 
                     view.loadUrl(pUrl);
 
                     return false;
-                } else if (pUrl.startsWith(Constants.URL.URL_HOST_PROFILE)) {
-                    CustomTabsHelper.openCustomTab(MainActivity.this, customTabsIntent, Uri.parse(pUrl), new WebViewFallback());
+                } else if (isHostStartsWithUrl(CHROME_TAB_HOSTS, pUrl)) {
+                    CustomTabsHelper.openCustomTab(MainActivity.this, mCustomTabsIntent, Uri.parse(pUrl), new WebViewFallback());
 
                     return true;
                 } else {
@@ -279,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (mSplashBackgroundView.getVisibility() == View.VISIBLE ||
                         mWhiteSplashBackgroundView.getVisibility() == View.VISIBLE ||
-                        mSplashView.getVisibility() == View.VISIBLE) {
+                        mLogoSplashView.getVisibility() == View.VISIBLE) {
                     fadeOutLogos();
                 }
             }
@@ -334,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
     private void showSplashView() {
         mSplashBackgroundView.setVisibility(View.VISIBLE);
         mWhiteSplashBackgroundView.setVisibility(View.VISIBLE);
-        mSplashView.setVisibility(View.VISIBLE);
+        mLogoSplashView.setVisibility(View.VISIBLE);
     }
 
     private void showProgressBar() {
@@ -347,8 +340,8 @@ public class MainActivity extends AppCompatActivity {
         mProgressBarClickableFrame.setVisibility(View.GONE);
     }
 
-    private boolean isHostAvailable(final String pUrl) {
-        for (final String url : AVAILABLE_HOSTS) {
+    private boolean isHostStartsWithUrl(final Iterable<String> pHostList, final String pUrl) {
+        for (final String url : pHostList) {
             if (pUrl.startsWith(url)) {
                 return true;
             }
@@ -361,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
         final Animation fadeOut = getFadeOutAnimation();
         fadeOut.setAnimationListener(getLogosAnimationListener());
 
-        mSplashView.startAnimation(fadeOut);
+        mLogoSplashView.startAnimation(fadeOut);
     }
 
     private void fadeOutBackground() {
@@ -376,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
     private Animation getFadeOutAnimation() {
         final Animation fadeOut = new AlphaAnimation(1, 0);
         fadeOut.setInterpolator(new AccelerateInterpolator());
-        fadeOut.setDuration(FADE_OUT_MILLIS);
+        fadeOut.setDuration(Constants.ANIMATION.FADE_OUT_MILLIS);
 
         return fadeOut;
     }
@@ -397,10 +390,19 @@ public class MainActivity extends AppCompatActivity {
 
             public void onAnimationEnd(final Animation animation) {
 
-                mSplashView.setVisibility(View.GONE);
+                mLogoSplashView.setVisibility(View.GONE);
 
                 fadeOutBackground();
             }
         };
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mWebView != null && mWebView.canGoBack()) {
+            mWebView.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 }
