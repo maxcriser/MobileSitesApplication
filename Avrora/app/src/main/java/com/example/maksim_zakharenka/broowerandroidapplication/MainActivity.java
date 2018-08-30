@@ -127,7 +127,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedSslError(final WebView view, final SslErrorHandler handler, final SslError error) {
-                handler.proceed();
+                if (error.getPrimaryError() == 1001) {
+                    handler.cancel();
+                } else {
+                    handler.proceed();
+                }
             }
         });
 
