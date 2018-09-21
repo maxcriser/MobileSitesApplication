@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Broower</string>
+    <string name="error_title">Connection error</string>
+    <string name="error_body">Please check your internet connection and try again.</string>
+    <string name="error_try_again">Try again</string>
+    <string name="error_cancel">Cancel</string>
+
+</resources>
